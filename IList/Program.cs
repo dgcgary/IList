@@ -35,11 +35,15 @@ public class DoublyLinkedList : IList
 {
     public Node? head { get; private set; }
     public Node? tail { get; private set; }
+    private Node? middle;
+    private int count;
 
     public DoublyLinkedList()
     {
         this.head = null;
         this.tail = null;
+        this.middle = null;
+        this.count = 0;
     }
 
     public void InsertInOrder(int value)
@@ -48,9 +52,11 @@ public class DoublyLinkedList : IList
 
         if (this.head == null)
         {
-            // La lista está vacía, el nuevo nodo se convierte en la cabeza y la cola
+            // La lista está vacía, el nuevo nodo se convierte en la cabeza, la cola y el medio
             this.head = newNode;
             this.tail = newNode;
+            this.middle = newNode;
+            this.count = 1;
             return;
         }
 
@@ -62,30 +68,57 @@ public class DoublyLinkedList : IList
             newNode.Next = this.head;
             this.head.Previous = newNode;
             this.head = newNode;
-            return;
-        }
-
-        // Buscar la posición correcta para insertar el nuevo nodo
-        while (current.Next != null && current.Next.Value < value)
-        {
-            current = current.Next;
-        }
-
-        // Insertar el nuevo nodo en la posición encontrada
-        newNode.Next = current.Next;
-        if (current.Next != null)
-        {
-            current.Next.Previous = newNode;
         }
         else
         {
-            // Si se inserta al final, actualizar la cola
-            this.tail = newNode;
+            // Buscar la posición correcta para insertar el nuevo nodo
+            while (current.Next != null && current.Next.Value < value)
+            {
+                current = current.Next;
+            }
+
+            // Insertar el nuevo nodo en la posición encontrada
+            newNode.Next = current.Next;
+            if (current.Next != null)
+            {
+                current.Next.Previous = newNode;
+            }
+            else
+            {
+                // Si se inserta al final, actualizar la cola
+                this.tail = newNode;
+            }
+            current.Next = newNode;
+            newNode.Previous = current;
         }
-        current.Next = newNode;
-        newNode.Previous = current;
+
+        this.count++;
+
+        // Actualizar el nodo medio
+        if (this.count % 2 == 0)
+        {
+            if (value >= this.middle!.Value)
+            {
+                this.middle = this.middle.Next;
+            }
+        }
+        else
+        {
+            if (value < this.middle!.Value)
+            {
+                this.middle = this.middle.Previous;
+            }
+        }
     }
 
+    public int GetMiddle()
+    {
+        if (this.middle == null)
+        {
+            throw new InvalidOperationException("La lista está vacía.");
+        }
+        return this.middle.Value;
+    }
     public void Insert(int value)
     {
         Node newNode = new Node(value);
@@ -179,19 +212,6 @@ public class DoublyLinkedList : IList
             current.Next!.Previous = current.Previous;
         }
         return true;
-    }
-
-    public int GetMiddle()
-    {
-        if (head == null) throw new InvalidOperationException("List is empty");
-        Node slow = head;
-        Node fast = head;
-        while (fast != null && fast.Next != null)
-        {
-            slow = slow.Next!;
-            fast = fast.Next.Next!;
-        }
-        return slow.Value;
     }
 
     public void MergeSorted(IList listA, IList listB, SortDirection direction)

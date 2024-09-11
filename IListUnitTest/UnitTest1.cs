@@ -228,13 +228,6 @@ namespace IListUnitTest
                 }
             }
 
-            // Imprimir el contenido de la lista invertida
-            Debug.WriteLine("Contenido de la lista invertida:");
-            foreach (var item in actual)
-            {
-                Debug.WriteLine(item);
-            }
-
             CollectionAssert.AreEqual(expected, actual);
         }
 
@@ -262,6 +255,74 @@ namespace IListUnitTest
             }
 
             CollectionAssert.AreEqual(expected, actual);
+        }
+    }
+
+
+    [TestClass]
+    public class UnitTest3
+    {
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void TestGetMiddle_NullList()
+        {
+            var list = new DoublyLinkedList();
+            list.GetMiddle();
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void TestGetMiddle_EmptyList()
+        {
+            var list = new DoublyLinkedList();
+            list.GetMiddle();
+        }
+
+        [TestMethod]
+        public void TestGetMiddle_SingleElement()
+        {
+            var list = new DoublyLinkedList();
+            list.InsertInOrder(1);
+            Assert.AreEqual(1, list.GetMiddle());
+        }
+
+        [TestMethod]
+        public void TestGetMiddle_TwoElements()
+        {
+            var list = new DoublyLinkedList();
+            list.InsertInOrder(1);
+            Debug.WriteLine($"After inserting 1: Middle = {list.GetMiddle()}");
+            list.InsertInOrder(2);
+            Debug.WriteLine($"After inserting 2: Middle = {list.GetMiddle()}");
+            Assert.AreEqual(2, list.GetMiddle());
+        }
+
+        [TestMethod]
+        public void TestGetMiddle_OddNumberOfElements()
+        {
+            var list = new DoublyLinkedList();
+            list.InsertInOrder(0);
+            Debug.WriteLine($"After inserting 0: Middle = {list.GetMiddle()}");
+            list.InsertInOrder(1);
+            Debug.WriteLine($"After inserting 1: Middle = {list.GetMiddle()}");
+            list.InsertInOrder(2);
+            Debug.WriteLine($"After inserting 2: Middle = {list.GetMiddle()}");
+            Assert.AreEqual(1, list.GetMiddle());
+        }
+
+        [TestMethod]
+        public void TestGetMiddle_EvenNumberOfElements()
+        {
+            var list = new DoublyLinkedList();
+            list.InsertInOrder(0);
+            Debug.WriteLine($"After inserting 0: Middle = {list.GetMiddle()}");
+            list.InsertInOrder(1);
+            Debug.WriteLine($"After inserting 1: Middle = {list.GetMiddle()}");
+            list.InsertInOrder(2);
+            Debug.WriteLine($"After inserting 2: Middle = {list.GetMiddle()}");
+            list.InsertInOrder(3);
+            Debug.WriteLine($"After inserting 3: Middle = {list.GetMiddle()}");
+            Assert.AreEqual(2, list.GetMiddle());
         }
     }
 }
