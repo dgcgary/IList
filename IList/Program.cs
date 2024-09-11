@@ -20,77 +20,108 @@ public interface IList
 public class Node
 {
     public int Value { get; set; }
-    public Node Next { get; set; }
-    public Node Previous { get; set; }
+    public Node? Next { get; set; }
+    public Node? Previous { get; set; }
 
     public Node(int value)
     {
-        Value = value;
-        Next = null;
-        Previous = null;
+        this.Value = value;
+        this.Next = null;
+        this.Previous = null;
     }
 }
 
 public class DoublyLinkedList : IList
 {
-    private Node head;
-    private Node tail;
+    public Node? head { get; private set; }
+    public Node? tail { get; private set; }
 
     public DoublyLinkedList()
     {
-        head = null;
-        tail = null;
+        this.head = null;
+        this.tail = null;
     }
 
     public void InsertInOrder(int value)
     {
         Node newNode = new Node(value);
-        if (head == null)
+
+        if (this.head == null)
         {
-            head = tail = newNode;
+            // La lista está vacía, el nuevo nodo se convierte en la cabeza y la cola
+            this.head = newNode;
+            this.tail = newNode;
+            return;
+        }
+
+        Node current = this.head;
+
+        // Si el nuevo valor es menor que la cabeza, se inserta al principio
+        if (value <= current.Value)
+        {
+            newNode.Next = this.head;
+            this.head.Previous = newNode;
+            this.head = newNode;
+            return;
+        }
+
+        // Buscar la posición correcta para insertar el nuevo nodo
+        while (current.Next != null && current.Next.Value < value)
+        {
+            current = current.Next;
+        }
+
+        // Insertar el nuevo nodo en la posición encontrada
+        newNode.Next = current.Next;
+        if (current.Next != null)
+        {
+            current.Next.Previous = newNode;
         }
         else
         {
-            Node current = head;
-            while (current != null && current.Value < value)
-            {
-                current = current.Next;
-            }
-            if (current == head)
-            {
-                newNode.Next = head;
-                head.Previous = newNode;
-                head = newNode;
-            }
-            else if (current == null)
-            {
-                tail.Next = newNode;
-                newNode.Previous = tail;
-                tail = newNode;
-            }
-            else
-            {
-                newNode.Next = current;
-                newNode.Previous = current.Previous;
-                current.Previous.Next = newNode;
-                current.Previous = newNode;
-            }
+            // Si se inserta al final, actualizar la cola
+            this.tail = newNode;
         }
+        current.Next = newNode;
+        newNode.Previous = current;
     }
 
+    public void Insert(int value)
+    {
+        Node newNode = new Node(value);
+
+        if (this.head == null)
+        {
+            // La lista está vacía, el nuevo nodo se convierte en la cabeza y la cola
+            this.head = newNode;
+            this.tail = newNode;
+            return;
+        }
+
+        // Añadir el nuevo nodo al final de la lista
+        this.tail!.Next = newNode;
+        newNode.Previous = this.tail;
+        this.tail = newNode;
+    }
     public int DeleteFirst()
     {
-        if (head == null) throw new InvalidOperationException("List is empty");
-        int value = head.Value;
-        head = head.Next;
-        if (head != null)
+        if (this.head == null)
         {
-            head.Previous = null;
+            throw new InvalidOperationException("La lista está vacía.");
+        }
+
+        int value = this.head.Value;
+        this.head = this.head.Next;
+
+        if (this.head != null)
+        {
+            this.head.Previous = null;
         }
         else
         {
-            tail = null;
+            this.tail = null;
         }
+
         return value;
     }
 
@@ -112,7 +143,7 @@ public class DoublyLinkedList : IList
 
     public bool DeleteValue(int value)
     {
-        Node current = head;
+        Node? current = head;
         while (current != null && current.Value != value)
         {
             current = current.Next;
@@ -144,8 +175,8 @@ public class DoublyLinkedList : IList
         }
         else
         {
-            current.Previous.Next = current.Next;
-            current.Next.Previous = current.Previous;
+            current.Previous!.Next = current.Next;
+            current.Next!.Previous = current.Previous;
         }
         return true;
     }
@@ -157,8 +188,8 @@ public class DoublyLinkedList : IList
         Node fast = head;
         while (fast != null && fast.Next != null)
         {
-            slow = slow.Next;
-            fast = fast.Next.Next;
+            slow = slow.Next!;
+            fast = fast.Next.Next!;
         }
         return slow.Value;
     }
@@ -171,8 +202,8 @@ public class DoublyLinkedList : IList
         }
 
         DoublyLinkedList mergedList = new DoublyLinkedList();
-        Node currentA = ((DoublyLinkedList)listA).head;
-        Node currentB = ((DoublyLinkedList)listB).head;
+        Node? currentA = ((DoublyLinkedList)listA).head;
+        Node? currentB = ((DoublyLinkedList)listB).head;
 
         while (currentA != null && currentB != null)
         {
@@ -204,9 +235,9 @@ public class DoublyLinkedList : IList
         if (direction == SortDirection.Descending)
         {
             // Invertir la lista para el orden descendente
-            Node prev = null;
-            Node current = mergedList.head;
-            Node next = null;
+            Node? prev = null;
+            Node? current = mergedList.head;
+            Node? next = null;
             while (current != null)
             {
                 next = current.Next;
@@ -222,28 +253,53 @@ public class DoublyLinkedList : IList
         this.tail = mergedList.tail;
     }
 
-}
-
-class Program
-{
-    static void Main(string[] args)
+    public void InvertirLista()
     {
-        // Ejemplo de uso de la lista doblemente enlazada
-        DoublyLinkedList list = new DoublyLinkedList();
-        list.InsertInOrder(3);
-        list.InsertInOrder(1);
-        list.InsertInOrder(2);
-
-        Console.WriteLine("Lista después de insertar 1, 2, 3 en orden:");
-        while (true)
+        if (this.head == null)
         {
-            try
+            return; // Lista vacía, no hay nada que invertir
+        }
+
+        Node? current = this.head;
+        Node? temp = null;
+
+        // Intercambiar los punteros siguiente y anterior para todos los nodos
+        while (current != null)
+        {
+            temp = current.Previous;
+            current.Previous = current.Next;
+            current.Next = temp;
+            current = current.Previous;
+        }
+
+        // Ajustar la cabeza y la cola
+        if (temp != null)
+        {
+            this.head = temp.Previous;
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            // Ejemplo de uso de la lista doblemente enlazada
+            DoublyLinkedList list = new DoublyLinkedList();
+            list.InsertInOrder(3);
+            list.InsertInOrder(1);
+            list.InsertInOrder(2);
+
+            Console.WriteLine("Lista después de insertar 1, 2, 3 en orden:");
+            while (true)
             {
-                Console.WriteLine(list.DeleteFirst());
-            }
-            catch (InvalidOperationException)
-            {
-                break;
+                try
+                {
+                    Console.WriteLine(list.DeleteFirst());
+                }
+                catch (InvalidOperationException)
+                {
+                    break;
+                }
             }
         }
     }

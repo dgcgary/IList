@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace IListUnitTest
 {
     [TestClass]
@@ -160,5 +162,106 @@ namespace IListUnitTest
     }
 
 
+    [TestClass]
+    public class UnitTest2
+    {
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void TestInvertirLista_NullList()
+        {
+            DoublyLinkedList list = null;
+            if (list == null)
+            {
+                throw new ArgumentNullException(nameof(list));
+            }
+            list.InvertirLista();
+        }
 
+        [TestMethod]
+        public void TestInvertirLista_EmptyList()
+        {
+            var list = new DoublyLinkedList();
+            list.InvertirLista();
+
+            var expected = new List<int> { };
+            var actual = new List<int>();
+
+            while (true)
+            {
+                try
+                {
+                    actual.Add(list.DeleteFirst());
+                }
+                catch (InvalidOperationException)
+                {
+                    break;
+                }
+            }
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void TestInvertirLista_NonEmptyList()
+        {
+            var list = new DoublyLinkedList();
+            list.Insert(1);
+            list.Insert(0);
+            list.Insert(30);
+            list.Insert(50);
+            list.Insert(2);
+
+            list.InvertirLista();
+
+            var expected = new List<int> { 2, 50, 30, 0, 1 };
+            var actual = new List<int>();
+
+            while (true)
+            {
+                try
+                {
+                    actual.Add(list.DeleteFirst());
+                }
+                catch (InvalidOperationException)
+                {
+                    break;
+                }
+            }
+
+            // Imprimir el contenido de la lista invertida
+            Debug.WriteLine("Contenido de la lista invertida:");
+            foreach (var item in actual)
+            {
+                Debug.WriteLine(item);
+            }
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void TestInvertirLista_SingleElementList()
+        {
+            var list = new DoublyLinkedList();
+            list.Insert(2);
+
+            list.InvertirLista();
+
+            var expected = new List<int> { 2 };
+            var actual = new List<int>();
+
+            while (true)
+            {
+                try
+                {
+                    actual.Add(list.DeleteFirst());
+                }
+                catch (InvalidOperationException)
+                {
+                    break;
+                }
+            }
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+    }
 }
