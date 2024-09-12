@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
+/// Enum para definir la dirección de ordenamiento.
 public enum SortDirection
 {
     Ascending,
     Descending
 }
 
+
+/// Interfaz que define las operaciones básicas para una lista.
 public interface IList
 {
     void InsertInOrder(int value);
@@ -17,6 +20,7 @@ public interface IList
     void MergeSorted(IList listA, IList listB, SortDirection direction);
 }
 
+/// Clase que representa un nodo en una lista doblemente enlazada.
 public class Node
 {
     public int Value { get; set; }
@@ -31,10 +35,12 @@ public class Node
     }
 }
 
+
+/// Clase que representa una lista doblemente enlazada.
 public class DoublyLinkedList : IList
 {
-    public Node? head { get; private set; }
-    public Node? tail { get; private set; }
+    public Node? head { get; set; }
+    public Node? tail { get; set; }
     private Node? middle;
     private int count;
 
@@ -46,6 +52,7 @@ public class DoublyLinkedList : IList
         this.count = 0;
     }
 
+    /// Inserta un valor en la lista manteniendo el orden.
     public void InsertInOrder(int value)
     {
         Node newNode = new Node(value);
@@ -111,6 +118,7 @@ public class DoublyLinkedList : IList
         }
     }
 
+    /// Obtiene el valor del nodo medio de la lista.
     public int GetMiddle()
     {
         if (this.middle == null)
@@ -119,23 +127,9 @@ public class DoublyLinkedList : IList
         }
         return this.middle.Value;
     }
-    public void Insert(int value)
-    {
-        Node newNode = new Node(value);
 
-        if (this.head == null)
-        {
-            // La lista está vacía, el nuevo nodo se convierte en la cabeza y la cola
-            this.head = newNode;
-            this.tail = newNode;
-            return;
-        }
 
-        // Añadir el nuevo nodo al final de la lista
-        this.tail!.Next = newNode;
-        newNode.Previous = this.tail;
-        this.tail = newNode;
-    }
+    /// Elimina y retorna el primer valor de la lista.
     public int DeleteFirst()
     {
         if (this.head == null)
@@ -158,9 +152,10 @@ public class DoublyLinkedList : IList
         return value;
     }
 
+    /// Elimina y retorna el último valor de la lista.
     public int DeleteLast()
     {
-        if (tail == null) throw new InvalidOperationException("List is empty");
+        if (tail == null) throw new InvalidOperationException("La lista está vacía.");
         int value = tail.Value;
         tail = tail.Previous;
         if (tail != null)
@@ -174,6 +169,7 @@ public class DoublyLinkedList : IList
         return value;
     }
 
+    /// Elimina el primer nodo que contiene el valor especificado.
     public bool DeleteValue(int value)
     {
         Node? current = head;
@@ -214,64 +210,93 @@ public class DoublyLinkedList : IList
         return true;
     }
 
+    /// Fusiona una listA y una listB y devuelve la listA con la modificacion respectiva
     public void MergeSorted(IList listA, IList listB, SortDirection direction)
     {
-        if (listA == null || listB == null)
+        if (listA == null)
         {
-            throw new ArgumentNullException("Both lists must be non-null");
+            throw new ArgumentNullException(nameof(listA), "La lista A no puede ser nula.");
         }
 
-        DoublyLinkedList mergedList = new DoublyLinkedList();
-        Node? currentA = ((DoublyLinkedList)listA).head;
-        Node? currentB = ((DoublyLinkedList)listB).head;
+        if (listB == null)
+        {
+            throw new ArgumentNullException(nameof(listB), "La lista B no puede ser nula.");
+        }
+
+        if (!(listA is DoublyLinkedList) || !(listB is DoublyLinkedList))
+        {
+            throw new ArgumentException("Las listas deben ser de tipo DoublyLinkedList.");
+        }
+
+        var listADoubly = (DoublyLinkedList)listA;
+        var listBDoubly = (DoublyLinkedList)listB;
+
+        Node? currentA = listADoubly.head;
+        Node? currentB = listBDoubly.head;
+        Node? prevA = null;
 
         while (currentA != null && currentB != null)
         {
-            if ((direction == SortDirection.Ascending && currentA.Value <= currentB.Value) ||
-                (direction == SortDirection.Descending && currentA.Value >= currentB.Value))
+            if (currentA.Value <= currentB.Value)
             {
-                mergedList.InsertInOrder(currentA.Value);
+                prevA = currentA;
                 currentA = currentA.Next;
             }
             else
             {
-                mergedList.InsertInOrder(currentB.Value);
-                currentB = currentB.Next;
+                Node? nextB = currentB.Next;
+
+                if (prevA != null)
+                {
+                    prevA.Next = currentB;
+                    currentB.Previous = prevA;
+                }
+                else
+                {
+                    listADoubly.head = currentB;
+                    currentB.Previous = null;
+                }
+
+                currentB.Next = currentA;
+                if (currentA != null)
+                {
+                    currentA.Previous = currentB;
+                }
+
+                prevA = currentB;
+                currentB = nextB;
             }
         }
 
-        while (currentA != null)
+        if (currentB != null)
         {
-            mergedList.InsertInOrder(currentA.Value);
-            currentA = currentA.Next;
+            if (prevA != null)
+            {
+                prevA.Next = currentB;
+                currentB.Previous = prevA;
+            }
+            else
+            {
+                listADoubly.head = currentB;
+                currentB.Previous = null;
+            }
         }
 
-        while (currentB != null)
+        // Actualizar la cola de listA
+        while (listADoubly.tail != null && listADoubly.tail.Next != null)
         {
-            mergedList.InsertInOrder(currentB.Value);
-            currentB = currentB.Next;
+            listADoubly.tail = listADoubly.tail.Next;
         }
 
+        // Si la dirección es descendente, invertir la lista
         if (direction == SortDirection.Descending)
         {
-            // Invertir la lista para el orden descendente
-            Node? prev = null;
-            Node? current = mergedList.head;
-            Node? next = null;
-            while (current != null)
-            {
-                next = current.Next;
-                current.Next = prev;
-                current.Previous = next;
-                prev = current;
-                current = next;
-            }
-            mergedList.head = prev;
+            listADoubly.InvertirLista();
         }
-
-        this.head = mergedList.head;
-        this.tail = mergedList.tail;
     }
+
+
+    /// Invierte el orden de los nodos en la lista.
 
     public void InvertirLista()
     {
@@ -303,24 +328,7 @@ public class DoublyLinkedList : IList
     {
         static void Main(string[] args)
         {
-            // Ejemplo de uso de la lista doblemente enlazada
-            DoublyLinkedList list = new DoublyLinkedList();
-            list.InsertInOrder(3);
-            list.InsertInOrder(1);
-            list.InsertInOrder(2);
-
-            Console.WriteLine("Lista después de insertar 1, 2, 3 en orden:");
-            while (true)
-            {
-                try
-                {
-                    Console.WriteLine(list.DeleteFirst());
-                }
-                catch (InvalidOperationException)
-                {
-                    break;
-                }
-            }
+          
         }
     }
 }
